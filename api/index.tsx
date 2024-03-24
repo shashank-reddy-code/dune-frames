@@ -3,7 +3,7 @@ import { devtools } from "frog/dev";
 import { serveStatic } from "frog/serve-static";
 import { neynar } from "frog/hubs";
 import { handle } from "frog/vercel";
-import { getFidStats, getRecommendations } from "./dune.js";
+import { getFidStats, getFollowerActiveHours } from "./dune.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -83,6 +83,12 @@ app.frame("/fid30dStats", async (c) => {
         }}
       >
         <div
+          style={{ display: "flex", fontSize: "48px", marginBottom: "20px" }}
+        >
+          Your Farcaster activity trends over the last 30 days{" "}
+        </div>
+
+        <div
           style={{
             color: "black",
             fontSize: 50,
@@ -109,9 +115,9 @@ app.frame("/fid30dStats", async (c) => {
             >
               <span
                 style={{
-                  fontSize: "24px",
+                  fontSize: "36px",
                   fontWeight: "bold",
-                  width: "150px",
+                  width: "250px",
                   paddingRight: "20px", // Added padding to the right of the type
                 }}
               >
@@ -126,7 +132,7 @@ app.frame("/fid30dStats", async (c) => {
               >
                 <span
                   style={{
-                    fontSize: "36px",
+                    fontSize: "42px",
                     fontWeight: "bold",
                     marginRight: "10px",
                   }}
@@ -135,7 +141,7 @@ app.frame("/fid30dStats", async (c) => {
                 </span>
                 <span
                   style={{
-                    fontSize: "18px",
+                    fontSize: "24px",
                     color:
                       trends_list[`${type}_percentage_change`] < 0
                         ? "#ff4c4c"
@@ -154,6 +160,121 @@ app.frame("/fid30dStats", async (c) => {
       </div>
     ),
     intents: [<Button>See more insights</Button>],
+  });
+});
+
+app.frame("/followerActiveHours", async (c) => {
+  const { status, frameData, verified } = c;
+  let weeklyHourlyCounts: Record<string, Record<string, number>> = {};
+  console.log("loading...", status);
+
+  if (status === "response" && verified) {
+    console.log("running filter", frameData?.fid);
+    weeklyHourlyCounts = await getFollowerActiveHours(frameData?.fid);
+  }
+
+  // Function to calculate the overall max and min across all days
+  const calculateMaxMin = (
+    weeklyHourlyCounts: Record<string, Record<string, number>>
+  ) => {
+    let allCounts: number[] = [];
+    Object.values(weeklyHourlyCounts).forEach((dailyCounts) => {
+      allCounts = allCounts.concat(Object.values(dailyCounts));
+    });
+    const maxCount = Math.max(...allCounts);
+    const minCount = Math.min(...allCounts);
+    return { maxCount, minCount };
+  };
+
+  // Now use the function in your existing code
+  const { maxCount, minCount } = calculateMaxMin(weeklyHourlyCounts);
+  // Function to interpolate between colors
+  const interpolateColor = (value: number, max: number) => {
+    const saturation = Math.round((value / max) * 100); // Calculate saturation as a percentage of the max
+    const lightness = 100 - saturation; // Inverse relationship for lightness
+    return `hsl(280, ${saturation}%, ${lightness}%)`; // Hue for purple is around 280
+  };
+
+  return c.res({
+    action: "/followerActiveChannels",
+    image: (
+      <div
+        style={{
+          alignItems: "center",
+          background: "linear-gradient(to right, #E1E1F9, #FFECEB)",
+          backgroundSize: "100% 100%",
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "nowrap",
+          height: "100%",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{ display: "flex", fontSize: "36px", marginBottom: "20px" }}
+        >
+          Your followers are most active on these days and hours of the week{" "}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {[
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ].map((day) => (
+            <div
+              key={day}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                marginBottom: "10px",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  backgroundColor: "transparent",
+                  margin: "2px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  paddingRight: "20px",
+                }}
+              >
+                {day.slice(0, 3)}{" "}
+              </div>
+              {Object.entries(
+                weeklyHourlyCounts[`${day.toLowerCase()}_hourly_counts`]
+              ).map(([hour, count]) => (
+                <div
+                  key={`${day}_${hour}`}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    backgroundColor: interpolateColor(count, maxCount),
+                    margin: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color:
+                      count > (maxCount - minCount) / 2 ? "white" : "black",
+                    fontWeight: "bold",
+                  }}
+                ></div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    intents: [<Button>Continue</Button>],
   });
 });
 

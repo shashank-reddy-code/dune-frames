@@ -28,6 +28,49 @@ export async function getFidStats(fid: number) {
   return trends;
 }
 
+export async function getFollowerActiveHours(fid: number) {
+  // Prepare headers for the request.
+  const headers = new Headers({
+    "x-dune-api-key": DUNE_API_KEY || "",
+  });
+
+  // Fetch the data.
+  const response = await fetch(
+    `https://api.dune.com/api/v1/query/3556260/results?&filters=fid=${fid}`,
+    {
+      method: "GET",
+      headers: headers,
+    }
+  );
+
+  // Parse the JSON response.
+  const data = await response.json();
+  const result = data.result.rows[0]; // Assume there's only one row in the result for the filtered fid
+
+  // Delete 'fid' key if it exists in the result.
+  if (result && "fid" in result) {
+    delete result.fid;
+  }
+
+  // Initialize an object to hold the final counts for all days of the week.
+  const weeklyHourlyCounts = {};
+
+  // Process each day's hourly counts.
+  Object.keys(result).forEach((day) => {
+    const dayCounts = result[day];
+    weeklyHourlyCounts[day] = {};
+
+    // Set default count for each hour.
+    for (let hour = 0; hour < 24; hour++) {
+      weeklyHourlyCounts[day][hour] =
+        dayCounts[hour] !== null ? dayCounts[hour] : 0;
+    }
+  });
+
+  console.log(weeklyHourlyCounts);
+  return weeklyHourlyCounts;
+}
+
 export async function getRecommendations(fid: number) {
   //schedule the query on a 6 hour interval, and then fetch by filtering for the user fid within the query results
   //dune query: https://dune.com/queries/3509966
