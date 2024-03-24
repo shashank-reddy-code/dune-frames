@@ -3,7 +3,12 @@ import { devtools } from "frog/dev";
 import { serveStatic } from "frog/serve-static";
 import { neynar } from "frog/hubs";
 import { handle } from "frog/vercel";
-import { getFidStats, getFollowerActiveHours, getTopChannels } from "./dune.js";
+import {
+  getFidStats,
+  getFollowerActiveHours,
+  getTopChannels,
+  getFollowerTiers,
+} from "./dune.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -13,6 +18,14 @@ export const app = new Frog({
   hub: neynar({ apiKey: process.env["NEYNAR_API"] || "" }),
   verify: "silent",
 });
+
+const tierDefinitions: Record<string, string> = {
+  "🤖 npc": "Less than 400 followers",
+  "🥉 active": "400+ followers, 1+ casts, 50+ engagement score",
+  "🥈 star": "1k+ followers, 5+ casts, 500+ engagement score",
+  "🥇 influencer": "10k+ followers, 10+ casts, 2500+ engagement score",
+  "💎 vip": "50k+ followers, 10+ casts, 5000+ engagement score",
+};
 
 app.frame("/", async (c) => {
   return c.res({
@@ -290,6 +303,7 @@ app.frame("/followerActiveChannels", async (c) => {
   }
 
   return c.res({
+    action: "/followerTiers",
     image: (
       <div
         style={{
@@ -308,7 +322,7 @@ app.frame("/followerActiveChannels", async (c) => {
         <div
           style={{
             color: "black",
-            fontSize: "36px", // Adjusted font size
+            fontSize: "36px",
             fontStyle: "normal",
             letterSpacing: "-0.020em",
             lineHeight: "1.3",
@@ -341,12 +355,12 @@ app.frame("/followerActiveChannels", async (c) => {
                 .slice(0, activeChannels.length / 2)
                 .map((channel) => (
                   <span
-                    key={channel} // Don't forget to add a key to each item for React's rendering optimization
+                    key={channel}
                     style={{
-                      fontSize: "36px", // Increased font size
+                      fontSize: "36px",
                       fontWeight: "bold",
-                      marginBottom: "10px", // Add space between items
-                      marginRight: "60px", // Add space between columns
+                      marginBottom: "10px",
+                      marginRight: "60px",
                     }}
                   >
                     {channel}
@@ -369,6 +383,79 @@ app.frame("/followerActiveChannels", async (c) => {
                   </span>
                 ))}
             </div>
+          </div>
+        </div>
+      </div>
+    ),
+    intents: [<Button>Continue</Button>],
+  });
+});
+
+app.frame("/followerTiers", async (c) => {
+  const { status, frameData } = c;
+  let followerTiers: Record<string, number> = {};
+  console.log("loading...", status);
+
+  if (status === "response") {
+    console.log("running filter", frameData?.fid);
+    followerTiers = await getFollowerTiers(frameData?.fid);
+  }
+
+  return c.res({
+    image: (
+      <div
+        style={{
+          alignItems: "center",
+          background: "linear-gradient(to right, #E1E1F9, #FFECEB)",
+          backgroundSize: "100% 100%",
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "nowrap",
+          height: "100%",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            color: "black",
+            fontSize: "36px",
+            fontStyle: "normal",
+            letterSpacing: "-0.020em",
+            lineHeight: "1.3",
+            marginTop: "30px",
+            padding: "0 120px",
+            whiteSpace: "pre-wrap",
+            display: "flex",
+            flexDirection: "column",
+            fontWeight: "bold",
+          }}
+        >
+          <div style={{ fontSize: "50px", marginBottom: "20px" }}>
+            Your followers segmented by tiers
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {Object.entries(followerTiers).map(([tier, count]) => (
+              <div key={tier} style={{ display: "flex", margin: "5px" }}>
+                <span
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "36px",
+                    marginRight: "10px",
+                  }}
+                >
+                  {tier}:
+                </span>
+                <span style={{ fontSize: "36px" }}>{count}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
