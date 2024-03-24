@@ -28,6 +28,27 @@ export async function getFidStats(fid: number) {
   return trends;
 }
 
+export async function getTopChannels(fid: number) {
+  // schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
+  // dune query: https://dune.com/queries/3556441
+  const meta = {
+    "x-dune-api-key": DUNE_API_KEY || "",
+  };
+  const header = new Headers(meta);
+  const latest_response = await fetch(
+    `https://api.dune.com/api/v1/query/3556441/results?&filters=fid=${fid}`,
+    {
+      method: "GET",
+      headers: header,
+    }
+  );
+  const body = await latest_response.text();
+  const topChannels = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
+  delete topChannels.fid; //pop off the fid column that was used for filtering
+  console.log(topChannels);
+  return topChannels.top_10_urls;
+}
+
 export async function getFollowerActiveHours(fid: number) {
   // Prepare headers for the request.
   const headers = new Headers({

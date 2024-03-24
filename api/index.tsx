@@ -3,7 +3,7 @@ import { devtools } from "frog/dev";
 import { serveStatic } from "frog/serve-static";
 import { neynar } from "frog/hubs";
 import { handle } from "frog/vercel";
-import { getFidStats, getFollowerActiveHours } from "./dune.js";
+import { getFidStats, getFollowerActiveHours, getTopChannels } from "./dune.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -159,7 +159,7 @@ app.frame("/fid30dStats", async (c) => {
         </div>
       </div>
     ),
-    intents: [<Button>See more insights</Button>],
+    intents: [<Button>Continue</Button>],
   });
 });
 
@@ -275,6 +275,104 @@ app.frame("/followerActiveHours", async (c) => {
       </div>
     ),
     intents: [<Button>Continue</Button>],
+  });
+});
+
+app.frame("/followerActiveChannels", async (c) => {
+  const { status, frameData, verified } = c;
+  let activeChannels: string[] = [];
+  console.log("loading...", status);
+
+  if (status === "response" && verified) {
+    console.log("running filter", frameData?.fid);
+    activeChannels = await getTopChannels(frameData?.fid);
+  }
+
+  return c.res({
+    image: (
+      <div
+        style={{
+          alignItems: "center",
+          background: "linear-gradient(to right, #E1E1F9, #FFECEB)",
+          backgroundSize: "100% 100%",
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "nowrap",
+          height: "100%",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            color: "black",
+            fontSize: "36px", // Adjusted font size
+            fontStyle: "normal",
+            letterSpacing: "-0.020em",
+            lineHeight: "1.3",
+            marginTop: "30px",
+            padding: "0 120px",
+            whiteSpace: "pre-wrap",
+            display: "flex",
+            flexDirection: "column",
+            fontWeight: "bold",
+          }}
+        >
+          <div style={{ fontSize: "36px", marginBottom: "20px" }}>
+            Your followers are most active on these channels
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginRight: "20px",
+              }}
+            >
+              {activeChannels
+                .slice(0, activeChannels.length / 2)
+                .map((channel) => (
+                  <span
+                    key={channel} // Don't forget to add a key to each item for React's rendering optimization
+                    style={{
+                      fontSize: "36px", // Increased font size
+                      fontWeight: "bold",
+                      marginBottom: "10px", // Add space between items
+                      marginRight: "60px", // Add space between columns
+                    }}
+                  >
+                    {channel}
+                  </span>
+                ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {activeChannels
+                .slice(activeChannels.length / 2)
+                .map((channel) => (
+                  <span
+                    key={channel}
+                    style={{
+                      fontSize: "36px", // Increased font size
+                      fontWeight: "bold",
+                      marginBottom: "10px", // Add space between items
+                    }}
+                  >
+                    {channel}
+                  </span>
+                ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+    intents: [],
   });
 });
 
