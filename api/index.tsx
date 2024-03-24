@@ -11,6 +11,7 @@ export const app = new Frog({
   assetsPath: "/",
   basePath: "/api",
   hub: neynar({ apiKey: process.env["NEYNAR_API"] || "" }),
+  verify: "silent",
 });
 
 app.frame("/", async (c) => {
@@ -55,11 +56,11 @@ app.frame("/", async (c) => {
 });
 
 app.frame("/fid30dStats", async (c) => {
-  const { status, frameData, verified } = c;
+  const { status, frameData } = c;
   let trends_list: { key: any; value: any }[];
   console.log("loading...", status);
 
-  if (status === "response" && verified) {
+  if (status === "response") {
     console.log("running filter", frameData?.fid);
     trends_list = await getFidStats(frameData?.fid);
   }
@@ -164,11 +165,11 @@ app.frame("/fid30dStats", async (c) => {
 });
 
 app.frame("/followerActiveHours", async (c) => {
-  const { status, frameData, verified } = c;
+  const { status, frameData } = c;
   let weeklyHourlyCounts: Record<string, Record<string, number>> = {};
   console.log("loading...", status);
 
-  if (status === "response" && verified) {
+  if (status === "response") {
     console.log("running filter", frameData?.fid);
     weeklyHourlyCounts = await getFollowerActiveHours(frameData?.fid);
   }
@@ -279,11 +280,11 @@ app.frame("/followerActiveHours", async (c) => {
 });
 
 app.frame("/followerActiveChannels", async (c) => {
-  const { status, frameData, verified } = c;
+  const { status, frameData } = c;
   let activeChannels: string[] = [];
   console.log("loading...", status);
 
-  if (status === "response" && verified) {
+  if (status === "response") {
     console.log("running filter", frameData?.fid);
     activeChannels = await getTopChannels(frameData?.fid);
   }
