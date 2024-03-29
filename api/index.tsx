@@ -78,7 +78,7 @@ app.frame("/fid30dStats", async (c) => {
     trends_list = await getFidStats(frameData?.fid);
   }
 
-  const types = ["casts", "followers", "likes", "recasts", "mentions"];
+  const types = ["casts", "replies", "followers", "likes", "recasts", "mentions"];
   return c.res({
     action: "/followerActiveHours",
     image: (
