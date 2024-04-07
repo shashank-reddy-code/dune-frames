@@ -8,6 +8,8 @@ import {
   getFollowerActiveHours,
   getTopChannels,
   getFollowerTiers,
+  getTopCast,
+  getTrendingWords,
 } from "./dune.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -78,7 +80,14 @@ app.frame("/fid30dStats", async (c) => {
     trends_list = await getFidStats(frameData?.fid);
   }
 
-  const types = ["casts", "replies", "followers", "likes", "recasts", "mentions"];
+  const types = [
+    "casts",
+    "replies",
+    "followers",
+    "likes",
+    "recasts",
+    "mentions",
+  ];
   return c.res({
     action: "/followerActiveHours",
     image: (
@@ -402,6 +411,7 @@ app.frame("/followerTiers", async (c) => {
   }
 
   return c.res({
+    action: "/topCast",
     image: (
       <div
         style={{
@@ -456,6 +466,138 @@ app.frame("/followerTiers", async (c) => {
                 <span style={{ fontSize: "36px" }}>{count}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    ),
+    intents: [<Button>Continue</Button>],
+  });
+});
+
+app.frame("/topCast", async (c) => {
+  const { status, frameData } = c;
+  let topCast: Record<string, string> = {};
+  console.log("loading...", status);
+
+  if (status === "response") {
+    console.log("running filter", frameData?.fid);
+    topCast = await getTopCast(frameData?.fid);
+  }
+
+  const imageUrl = `https://client.warpcast.com/v2/cast-image?castHash=${topCast.hash}`;
+  return c.res({
+    action: "/trendingWords",
+    image: (
+      <div
+        style={{
+          alignItems: "center",
+          background: "linear-gradient(to right, #E1E1F9, #FFECEB)",
+          backgroundSize: "100% 100%",
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "nowrap",
+          height: "100%",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div style={{ fontSize: "50px", marginBottom: "20px" }}>
+          Top cast of the month
+        </div>
+        <img src={imageUrl} alt="Top cast" width={400} height={400} />
+      </div>
+    ),
+    intents: [<Button>Continue</Button>],
+  });
+});
+
+app.frame("/trendingWords", async (c) => {
+  const { status, frameData } = c;
+  let trendingWords: string[] = [];
+  console.log("loading...", status);
+
+  if (status === "response") {
+    console.log("running filter", frameData?.fid);
+    trendingWords = await getTrendingWords(frameData?.fid);
+  }
+
+  return c.res({
+    image: (
+      <div
+        style={{
+          alignItems: "center",
+          background: "linear-gradient(to right, #E1E1F9, #FFECEB)",
+          backgroundSize: "100% 100%",
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "nowrap",
+          height: "100%",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            color: "black",
+            fontSize: "36px",
+            fontStyle: "normal",
+            letterSpacing: "-0.020em",
+            lineHeight: "1.3",
+            marginTop: "30px",
+            padding: "0 120px",
+            whiteSpace: "pre-wrap",
+            display: "flex",
+            flexDirection: "column",
+            fontWeight: "bold",
+          }}
+        >
+          <div style={{ fontSize: "36px", marginBottom: "20px" }}>
+            Trending words among your followers in the past week
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginRight: "20px",
+              }}
+            >
+              {trendingWords.slice(0, trendingWords.length / 2).map((word) => (
+                <span
+                  key={word}
+                  style={{
+                    fontSize: "36px",
+                    fontWeight: "bold",
+                    marginBottom: "10px",
+                    marginRight: "60px",
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {trendingWords.slice(trendingWords.length / 2).map((word) => (
+                <span
+                  key={word}
+                  style={{
+                    fontSize: "36px", // Increased font size
+                    fontWeight: "bold",
+                    marginBottom: "10px", // Add space between items
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>

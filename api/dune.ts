@@ -113,6 +113,50 @@ export async function getFollowerActiveHours(fid: number) {
   return weeklyHourlyCounts;
 }
 
+export async function getTopCast(fid: number) {
+  //schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
+  //dune query: https://dune.com/queries/3556441
+  const meta = {
+    "x-dune-api-key": DUNE_API_KEY || "",
+  };
+  const header = new Headers(meta);
+  const latest_response = await fetch(
+    `https://api.dune.com/api/v1/query/3418706/results?&query_parameters=fid=${fid}`,
+    {
+      method: "GET",
+      headers: header,
+    }
+  );
+
+  const body = await latest_response.text();
+  const topCast = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
+  console.log(topCast);
+
+  return topCast;
+}
+
+export async function getTrendingWords(fid: number) {
+  //schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
+  //dune query: https://dune.com/queries/3598357
+  const meta = {
+    "x-dune-api-key": DUNE_API_KEY || "",
+  };
+  const header = new Headers(meta);
+  const latest_response = await fetch(
+    `https://api.dune.com/api/v1/query/3598357/results?&query_parameters=fid=${fid}`,
+    {
+      method: "GET",
+      headers: header,
+    }
+  );
+
+  const body = await latest_response.text();
+  const trendingWords = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
+  console.log(trendingWords);
+
+  return trendingWords.words;
+}
+
 export async function getRecommendations(fid: number) {
   //schedule the query on a 6 hour interval, and then fetch by filtering for the user fid within the query results
   //dune query: https://dune.com/queries/3509966
