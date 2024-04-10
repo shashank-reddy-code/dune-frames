@@ -11,7 +11,9 @@
     "dotenv": "^16.4.5",
     "frog": "^0.7.6",
     "hono": "latest",
-    "node-fetch": "^3.3.2"
+    "@duneanalytics/client-sdk": "latest",
+    "node-fetch": "^3.3.2",
+    "natural": "latest"
   },
   "devDependencies": {
     "tsx": "^4.7.1",

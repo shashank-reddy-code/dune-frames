@@ -3,8 +3,27 @@ dotenv.config();
 
 const DUNE_API_KEY = process.env["DUNE_API_KEY"];
 
+import { QueryParameter, DuneClient } from "@duneanalytics/client-sdk";
 import { Headers } from "node-fetch";
 import fetch from "node-fetch";
+import natural from "natural";
+const { PorterStemmer } = natural;
+
+const client = new DuneClient(DUNE_API_KEY ?? "");
+
+// This function uses a stemmer to reduce words to their base forms,
+// and then filters out the unique stems.
+const getUniqueWords = (words: string[]) => {
+  const stems = words.map((word) => PorterStemmer.stem(word.toLowerCase()));
+  const uniqueStems = new Set(stems);
+
+  return Array.from(uniqueStems).map((stem) => {
+    // Find the first word that matches the stem and return it.
+    return words.find(
+      (word) => PorterStemmer.stem(word.toLowerCase()) === stem
+    );
+  });
+};
 
 export async function getFidStats(fid: number) {
   // schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
@@ -136,23 +155,18 @@ export async function getTopCast(fid: number) {
 export async function getTrendingWords(fid: number) {
   //schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
   //dune query: https://dune.com/queries/3598357
-  const meta = {
-    "x-dune-api-key": DUNE_API_KEY || "",
-  };
-  const header = new Headers(meta);
-  const latest_response = await fetch(
-    `https://api.dune.com/api/v1/query/3598357/results?&query_parameters=fid=${fid}`,
-    {
-      method: "GET",
-      headers: header,
-    }
-  );
 
-  const body = await latest_response.text();
-  const trendingWords = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
+  const queryId = 3598357;
+  const query_parameters = [QueryParameter.number("fid", fid)];
+
+  const response = await client.runQuery({ queryId, query_parameters });
+  const trendingWords = response.result?.rows[0]; //will only be one row in the result, for the filtered fid
   console.log(trendingWords);
 
-  return trendingWords.words;
+  const uniqueWords = getUniqueWords(trendingWords.words).slice(0, 10);
+  console.log(uniqueWords);
+
+  return uniqueWords;
 }
 
 export async function getRecommendations(fid: number) {
