@@ -85,7 +85,29 @@ export async function getFollowerTiers(fid: number) {
   const followerTiers = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
   delete followerTiers.fid; //pop off the fid column that was used for filtering
   console.log(followerTiers);
-  return followerTiers.tier_name_counts;
+  const tierCounts = followerTiers.tier_name_counts;
+
+  const totalCount = Object.values(tierCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+  const tierMap: { [key: string]: { count: number; percentage: number } } = {};
+  for (const tier in tierCounts) {
+    const count = tierCounts[tier];
+    const percentage =
+      totalCount === 0 ? 0 : Number(((count / totalCount) * 100).toFixed(2));
+    tierMap[tier] = { count, percentage };
+  }
+  const sortedKeys = Object.keys(tierMap).sort((a, b) => {
+    return tierMap[a].percentage - tierMap[b].percentage;
+  });
+
+  const sortedTierMap = {};
+  sortedKeys.forEach((key) => {
+    sortedTierMap[key] = tierMap[key];
+  });
+
+  return sortedTierMap;
 }
 
 export async function getFollowerActiveHours(fid: number) {

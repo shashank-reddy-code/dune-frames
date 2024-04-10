@@ -402,7 +402,7 @@ app.frame("/followerActiveChannels", async (c) => {
 
 app.frame("/followerTiers", async (c) => {
   const { status, frameData } = c;
-  let followerTiers: Record<string, number> = {};
+  let followerTiers: Record<string, { count: number; percentage: number }> = {};
   console.log("loading...", status);
 
   if (status === "response") {
@@ -452,7 +452,7 @@ app.frame("/followerTiers", async (c) => {
               alignItems: "center",
             }}
           >
-            {Object.entries(followerTiers).map(([tier, count]) => (
+            {Object.entries(followerTiers).map(([tier, stats]) => (
               <div key={tier} style={{ display: "flex", margin: "5px" }}>
                 <span
                   style={{
@@ -463,7 +463,9 @@ app.frame("/followerTiers", async (c) => {
                 >
                   {tier}:
                 </span>
-                <span style={{ fontSize: "36px" }}>{count}</span>
+                <span style={{ fontSize: "36px" }}>
+                  {stats.count} ({stats.percentage} %)
+                </span>
               </div>
             ))}
           </div>
