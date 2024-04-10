@@ -8,7 +8,6 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "@cowprotocol/ts-dune-client": "^0.0.2",
     "dotenv": "^16.4.5",
     "frog": "^0.7.6",
     "hono": "latest",

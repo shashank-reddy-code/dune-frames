@@ -1,11 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { QueryParameter, DuneClient } from "@cowprotocol/ts-dune-client";
+const DUNE_API_KEY = process.env["DUNE_API_KEY"];
+
 import { Headers } from "node-fetch";
 import fetch from "node-fetch";
-
-const DUNE_API_KEY = process.env["DUNE_API_KEY"];
 
 export async function getFidStats(fid: number) {
   // schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
@@ -104,8 +103,7 @@ export async function getFollowerActiveHours(fid: number) {
 
     // Set default count for each hour.
     for (let hour = 0; hour < 24; hour++) {
-      weeklyHourlyCounts[day][hour] =
-        dayCounts[hour] !== null ? dayCounts[hour] : 0;
+      weeklyHourlyCounts[day][hour] = dayCounts[hour] ?? 0;
     }
   });
 
@@ -115,13 +113,13 @@ export async function getFollowerActiveHours(fid: number) {
 
 export async function getTopCast(fid: number) {
   //schedule the query on a 24 hour interval, and then fetch by filtering for the user fid within the query results
-  //dune query: https://dune.com/queries/3556441
+  //dune query: https://dune.com/queries/3418706
   const meta = {
     "x-dune-api-key": DUNE_API_KEY || "",
   };
   const header = new Headers(meta);
   const latest_response = await fetch(
-    `https://api.dune.com/api/v1/query/3418706/results?&query_parameters=fid=${fid}`,
+    `https://api.dune.com/api/v1/query/3418706/results?&filters=fid=${fid}`,
     {
       method: "GET",
       headers: header,
