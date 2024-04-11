@@ -464,7 +464,7 @@ app.frame("/followerTiers", async (c) => {
                   {tier}:
                 </span>
                 <span style={{ fontSize: "36px" }}>
-                  {stats.count} ({stats.percentage} %)
+                  {stats.percentage} % ({stats.count})
                 </span>
               </div>
             ))}

@@ -85,24 +85,26 @@ export async function getFollowerTiers(fid: number) {
   const followerTiers = JSON.parse(body).result.rows[0]; //will only be one row in the result, for the filtered fid
   delete followerTiers.fid; //pop off the fid column that was used for filtering
   console.log(followerTiers);
-  const tierCounts = followerTiers.tier_name_counts;
+  //return followerTiers;
 
-  const totalCount = Object.values(tierCounts).reduce(
-    (sum, count) => sum + count,
-    0
-  );
+  const tierCounts = followerTiers.tier_name_counts;
+  const tierPercentages = followerTiers.tier_name_percentages;
+
   const tierMap: { [key: string]: { count: number; percentage: number } } = {};
+
   for (const tier in tierCounts) {
     const count = tierCounts[tier];
-    const percentage =
-      totalCount === 0 ? 0 : Number(((count / totalCount) * 100).toFixed(2));
+    const percentage = tierPercentages[tier] || 0;
     tierMap[tier] = { count, percentage };
   }
+
   const sortedKeys = Object.keys(tierMap).sort((a, b) => {
-    return tierMap[a].percentage - tierMap[b].percentage;
+    return tierMap[b].percentage - tierMap[a].percentage;
   });
 
-  const sortedTierMap = {};
+  const sortedTierMap: {
+    [key: string]: { count: number; percentage: number };
+  } = {};
   sortedKeys.forEach((key) => {
     sortedTierMap[key] = tierMap[key];
   });
