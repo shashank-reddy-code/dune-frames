@@ -15,7 +15,7 @@ export async function summarizeReplies(
     
     This is the original post which the user likely has read :\n\n${cast}. We dont want to call out extremely obvious stuff from the post itself but find interesting themes being talked about in the replies. 
     
-    Provide 3 words under 30 characters in total, separated by commas summarizing frequently yet interesting themes in the replies. Makee sure to weigh the replies based on the numnber of likes each on has. More liked replies should get a higher weight when you are trying to summarize the topics. Again avoid obvious topics that are already in the original post. Please avoid $DEGEN as a stop word if its frequently mentioned. 
+    PROVIDE 3 WORDS UNDER 30 CHARACTERS IN TOTAL, SEPARATED BY COMMAS summarizing frequently yet interesting themes in the replies. Makee sure to weigh the replies based on the numnber of likes each on has. More liked replies should get a higher weight when you are trying to summarize the topics. Again avoid obvious topics that are already in the original post. Please avoid $DEGEN as a stop word if its frequently mentioned. 
     
     Here is a json array of the replies along with the number of likes each one got :\n\n${JSON.stringify(
       replies
