@@ -35,15 +35,43 @@ export async function summarizeReplies(
     });
 
     if (response.choices && response.choices.length > 0) {
-      return (
-        response.choices[0].message.content ||
-        "Unable to generate top mentions. Please try again."
-      );
+      const content = response.choices[0].message.content;
+      if (content && content.length > 30) {
+        return await shortenString(content);
+      } else {
+        return content || "Unable to generate summary.";
+      }
     } else {
       return "Unable to generate top mentions. Please try again.";
     }
   } catch (error) {
     console.error("Error while generating top mentions:", error);
     throw new Error("Failed to summarize replies.");
+  }
+}
+
+export async function shortenString(input: string): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Please summarize the following words under 30 characters, separated by comma" +
+            input,
+        },
+      ],
+    });
+    if (response.choices && response.choices.length > 0) {
+      return (
+        response.choices[0].message.content || "Unable to generate summary."
+      );
+    } else {
+      return "Unable to generate summary.";
+    }
+  } catch (error) {
+    console.error("Error while generating summary:", error);
+    throw new Error("Failed to summarize string.");
   }
 }
