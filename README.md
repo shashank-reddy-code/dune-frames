@@ -8,6 +8,8 @@ Important Resources:
 - [Most active hours of your followers](https://dune.com/queries/3556260)
 - [Top Channels of your followers in past 30 days](https://dune.com/queries/3556441)
 - [Get follower tiers](https://dune.com/queries/3556783)
+- [Top cast of the month](https://dune.com/queries/3418706)
+- [Trending words among followers](https://dune.com/queries/3598357)
 
 ### Running Locally
 

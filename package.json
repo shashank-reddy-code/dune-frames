@@ -13,7 +13,9 @@
     "hono": "latest",
     "@duneanalytics/client-sdk": "latest",
     "node-fetch": "^3.3.2",
-    "natural": "latest"
+    "natural": "latest",
+    "@neynar/nodejs-sdk": "latest",
+    "openai": "latest"
   },
   "devDependencies": {
     "tsx": "^4.7.1",

@@ -11,15 +11,24 @@ import {
   getTopCast,
   getTrendingWords,
 } from "./dune.js";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { summarizeReplies } from "./openai.js";
 import dotenv from "dotenv";
 dotenv.config();
+
+const ADD_URL =
+  "https://warpcast.com/~/add-cast-action?name=TopMentions&icon=thumbsup&actionType=post&postUrl=https://cast-sense.vercel.app/api/cast/topMentions";
 
 export const app = new Frog({
   assetsPath: "/",
   basePath: "/api",
   hub: neynar({ apiKey: process.env["NEYNAR_API"] || "" }),
   verify: "silent",
+  browserLocation: ADD_URL,
 });
+
+const NEYNAR_API_KEY = process.env.NEYNAR_API ?? "";
+const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 
 const tierDefinitions: Record<string, string> = {
   "🤖 npc": "Less than 400 followers",
@@ -606,6 +615,63 @@ app.frame("/trendingWords", async (c) => {
     ),
     intents: [],
   });
+});
+
+// Cast action handler
+app.hono.post("/topMentions", async (c) => {
+  const {
+    trustedData: { messageBytes },
+  } = await c.req.json();
+
+  const result = await neynarClient.validateFrameAction(messageBytes);
+  if (result.valid) {
+    const response = await fetch(
+      `https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${result.action.cast.hash}&type=url&reply_depth=5&include_chronological_parent_casts=false`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          api_key: process.env.NEYNAR_API || "",
+        },
+      }
+    );
+    const res = await response.json();
+    const replies = res.conversation.cast.direct_replies.map((reply: any) => ({
+      text: reply.text,
+      num_likes: reply.reactions.likes + reply.reactions.recasts,
+    }));
+
+    let message = await summarizeReplies(res.conversation.cast.text, replies);
+    console.log(message);
+
+    return c.json({ message });
+  } else {
+    return c.json({ message: "Unauthorized" }, 401);
+  }
+});
+
+app.hono.get("/topMentions/:hash", async (c) => {
+  const castHash = c.req.param("hash");
+  const response = await fetch(
+    `https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${castHash}&type=hash&reply_depth=5&include_chronological_parent_casts=false`,
+    {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        api_key: process.env.NEYNAR_API || "",
+      },
+    }
+  );
+  const result = await response.json();
+  const replies = result.conversation.cast.direct_replies.map((reply: any) => ({
+    text: reply.text,
+    num_likes: reply.reactions.likes + reply.reactions.recasts,
+  }));
+
+  let message = await summarizeReplies(result.conversation.cast.text, replies);
+  console.log(message);
+
+  return c.json({ message });
 });
 
 export const GET = handle(app);
