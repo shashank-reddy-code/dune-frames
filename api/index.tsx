@@ -648,6 +648,11 @@ app.hono.post("/topMentions", async (c) => {
     let message = await summarizeReplies(res.conversation.cast.text, replies);
     console.log(message);
 
+    if (message.length > 30) {
+      console.log("Received long message, truncating");
+      message = message.slice(0, 30);
+    }
+
     return c.json({ message });
   } else {
     return c.json({ message: "Unauthorized" }, 401);
@@ -674,6 +679,10 @@ app.hono.get("/topMentions/:hash", async (c) => {
 
   let message = await summarizeReplies(result.conversation.cast.text, replies);
   console.log(message);
+
+  if (message.length > 30) {
+    message = message.slice(0, 30);
+  }
 
   return c.json({ message });
 });

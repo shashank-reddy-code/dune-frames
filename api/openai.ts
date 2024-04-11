@@ -24,8 +24,6 @@ export async function summarizeReplies(
     REMEMBER AGAIN, RESPONSE NEEDS TO BE STRICTLY UNDER 30 CHARACTERS TOTAL.
     `;
 
-    console.log("Prompt:", prompt);
-
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
