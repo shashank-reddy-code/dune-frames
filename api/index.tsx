@@ -625,6 +625,7 @@ app.hono.post("/topMentions", async (c) => {
 
   const result = await neynarClient.validateFrameAction(messageBytes);
   if (result.valid) {
+    console.log("fetching conversation for cast hash", result.action.cast.hash);
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${result.action.cast.hash}&type=url&reply_depth=5&include_chronological_parent_casts=false`,
       {
