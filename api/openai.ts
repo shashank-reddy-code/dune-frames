@@ -9,7 +9,6 @@ export async function summarizeReplies(
   replies: any
 ): Promise<string> {
   try {
-    console.log("API Key:", process.env["OPENAI_API_KEY"]);
     // Concatenate your replies into a single string, if not already done. You might want to add some separator or preprocessing based on your data format.
     const prompt = `Please summarize a collection of replies I will share and identify the top 3 frequently mentioned topics. These topics should let a new user who has not read the whole list of replies to quickly get an idea of the of the core themes being talked about. 
     
