@@ -14,13 +14,13 @@ export async function summarizeReplies(
     
     This is the original post which the user likely has read :\n\n${cast}. We dont want to call out extremely obvious stuff from the post itself but find interesting themes being talked about in the replies. 
     
-    PROVIDE 3 WORDS UNDER STRICTLY 30 CHARACTERS IN TOTAL, SEPARATED BY COMMAS summarizing frequently yet interesting themes in the replies. Makee sure to weigh the replies based on the numnber of likes each on has. More liked replies should get a higher weight when you are trying to summarize the topics. Again avoid obvious topics that are already in the original post. Please avoid $DEGEN as a stop word if its frequently mentioned. 
+    PROVIDE 3 WORDS UNDER STRICTLY 80 CHARACTERS IN TOTAL, SEPARATED BY COMMAS summarizing frequently yet interesting themes in the replies. Makee sure to weigh the replies based on the numnber of likes each on has. More liked replies should get a higher weight when you are trying to summarize the topics. Again avoid obvious topics that are already in the original post. Please avoid $DEGEN as a stop word if its frequently mentioned. 
     
     Here is a json array of the replies along with the number of likes each one got :\n\n${JSON.stringify(
       replies
     )}
     
-    REMEMBER AGAIN, RESPONSE NEEDS TO BE STRICTLY UNDER 30 CHARACTERS TOTAL.
+    REMEMBER AGAIN, RESPONSE NEEDS TO BE STRICTLY UNDER 80 CHARACTERS TOTAL.
     `;
 
     const response = await openai.chat.completions.create({
@@ -35,7 +35,7 @@ export async function summarizeReplies(
 
     if (response.choices && response.choices.length > 0) {
       const content = response.choices[0].message.content;
-      if (content && content.length > 30) {
+      if (content && content.length > 80) {
         return await shortenString(content);
       } else {
         return content || "Unable to generate summary.";
@@ -57,15 +57,18 @@ export async function shortenString(input: string): Promise<string> {
         {
           role: "system",
           content:
-            "Please summarize the following words under 30 characters, separated by comma" +
+            "Please summarize the following words under 80 characters, separated by comma" +
             input,
         },
       ],
     });
     if (response.choices && response.choices.length > 0) {
-      return (
-        response.choices[0].message.content || "Unable to generate summary."
-      );
+      const content = response.choices[0].message.content;
+      if (content && content.length > 80) {
+        return content.substring(0, 80) + "...";
+      } else {
+        return content || "Unable to generate summary.";
+      }
     } else {
       return "Unable to generate summary.";
     }
