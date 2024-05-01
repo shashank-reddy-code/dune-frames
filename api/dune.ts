@@ -120,7 +120,7 @@ export async function getFollowerActiveHours(fid: number) {
 
   // Fetch the data.
   const response = await fetch(
-    `https://api.dune.com/api/v1/query/3556260/results?&filters=fid=${fid}`,
+    `https://api.dune.com/api/v1/query/3679974/results?&filters=fid=${fid}`,
     {
       method: "GET",
       headers: headers,
