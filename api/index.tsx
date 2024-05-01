@@ -497,7 +497,6 @@ app.frame("/topCast", async (c) => {
 
   const imageUrl = `https://client.warpcast.com/v2/cast-image?castHash=${topCast.hash}`;
   return c.res({
-    action: "/trendingWords",
     image: (
       <div
         style={{
@@ -519,7 +518,7 @@ app.frame("/topCast", async (c) => {
         <img src={imageUrl} alt="Top cast" width={400} height={400} />
       </div>
     ),
-    intents: [<Button>Continue</Button>],
+    intents: [],
   });
 });
 
